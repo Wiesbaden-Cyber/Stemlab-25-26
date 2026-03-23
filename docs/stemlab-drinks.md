@@ -3,7 +3,7 @@
 **Host:** dolus (Ubuntu 24.04) | `172.16.10.58` | VLAN 10 (Lab)
 **Source on server:** `/home/ferry/stemlab-drinks/`
 **Repo:** [Wiesbaden-Cyber/stemlab-drinks](https://github.com/Wiesbaden-Cyber/stemlab-drinks)
-**Access:** `http://172.16.10.58:3000` (internal) | planned: `drinks.velocit.ee` (Cloudflare Tunnel)
+**Access:** `http://172.16.10.58:3000` (internal) | `drinks.velocit.ee` (Cloudflare Tunnel)
 
 ---
 
