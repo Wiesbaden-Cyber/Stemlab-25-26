@@ -1,0 +1,137 @@
+<mxfile host="app.diagrams.net" modified="2026-03-23T00:00:00.000Z" version="24.0.0">
+  <diagram id="services" name="Services &amp; Applications">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ===== PAGE TITLE ===== -->
+        <mxCell id="title" value="StemLab Services &amp;amp; Applications — 2025-26" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="800" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== DRINK ORDERING SERVICE ==================== -->
+        <mxCell id="s1" value="&lt;b&gt;Drink Ordering Service&lt;/b&gt;&#xa;dolus | 172.16.10.58 | VLAN 10 Lab" style="swimlane;startSize=40;fillColor=#f3e5f5;strokeColor=#4a235a;fontColor=#4a235a;fontSize=13;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="700" height="310" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s1a" value="&lt;b&gt;Nginx / Direct&lt;/b&gt;&#xa;port 3000 exposed&#xa;Static files: /app/public&#xa;index.html | staff.html | menu.html" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ede7f6;strokeColor=#4527a0;fontColor=#311b92;fontSize=11;" vertex="1" parent="s1">
+          <mxGeometry x="20" y="55" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s1b" value="&lt;b&gt;Node.js / Express Backend&lt;/b&gt;&#xa;stemlab-drinks-backend-1&#xa;Helmet CSP | Rate limiting&#xa;5 PIN attempts / 15min&#xa;20 orders / 10min" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ede7f6;strokeColor=#4527a0;fontColor=#311b92;fontSize=11;" vertex="1" parent="s1">
+          <mxGeometry x="250" y="55" width="200" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s1c" value="&lt;b&gt;PostgreSQL 16&lt;/b&gt;&#xa;stemlab-drinks-db-1&#xa;DB: stemlab | User: stemlab&#xa;Tables: drinks, orders,&#xa;order_items" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ede7f6;strokeColor=#4527a0;fontColor=#311b92;fontSize=11;" vertex="1" parent="s1">
+          <mxGeometry x="480" y="55" width="200" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- API endpoints box -->
+        <mxCell id="s1d" value="&lt;b&gt;API Endpoints&lt;/b&gt;&#xa;POST /api/auth                   — verify admin PIN&#xa;GET  /api/menu                   — list drinks (public)&#xa;POST /api/menu                   — add drink (admin)&#xa;PATCH /api/menu/:id              — edit drink (admin)&#xa;DELETE /api/menu/:id             — remove drink (admin)&#xa;POST /api/orders                 — place order (public, rate-limited)&#xa;GET  /api/orders                 — list all orders (admin)&#xa;PATCH /api/orders/:id/fulfill    — mark fulfilled (admin)&#xa;PATCH /api/orders/:id/cancel     — cancel order (admin)&#xa;DELETE /api/orders               — flush all orders (admin)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#880e4f;fontColor=#880e4f;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="s1">
+          <mxGeometry x="20" y="175" width="660" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Flow arrows inside drink service -->
+        <mxCell id="s1e" value="HTTP" style="edgeStyle=orthogonalEdgeStyle;rounded=0;fontSize=10;strokeColor=#4527a0;strokeWidth=2;" edge="1" source="s1a" target="s1b" parent="s1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s1f" value="SQL" style="edgeStyle=orthogonalEdgeStyle;rounded=0;fontSize=10;strokeColor=#4527a0;strokeWidth=2;" edge="1" source="s1b" target="s1c" parent="s1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== WINDOWS DOMAIN ==================== -->
+        <mxCell id="s2" value="&lt;b&gt;Windows Domain (VLAN 20 Classroom)&lt;/b&gt;" style="swimlane;startSize=40;fillColor=#ede7f6;strokeColor=#4527a0;fontColor=#4527a0;fontSize=13;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="430" width="700" height="290" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s2a" value="&lt;b&gt;VM105 WindowsServer1776&lt;/b&gt;&#xa;Windows Server | VLAN 20&#xa;IP: 172.16.20.20&#xa;AD DS | DNS | Domain Controller&#xa;DNS server for VLAN 20 clients&#xa;SMB signing required" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1c4e9;strokeColor=#4527a0;fontColor=#1a237e;fontSize=11;" vertex="1" parent="s2">
+          <mxGeometry x="20" y="55" width="250" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s2b" value="&lt;b&gt;VM106 ADDC&lt;/b&gt;&#xa;Windows Server 2025&#xa;VLAN 20 | Currently Stopped&#xa;Active Directory DC&#xa;(secondary / standby)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontColor=#616161;fontSize=11;" vertex="1" parent="s2">
+          <mxGeometry x="310" y="55" width="220" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s2c" value="&lt;b&gt;VM107 FreeRADIUS-CA&lt;/b&gt;&#xa;Ubuntu 24.04 | VLAN 20&#xa;FreeRADIUS — MAC auth for WiFi&#xa;CA server — cert management&#xa;Aruba VC RADIUS client" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;fontColor=#1b5e20;fontSize=11;" vertex="1" parent="s2">
+          <mxGeometry x="20" y="190" width="250" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s2d" value="&lt;b&gt;Classroom PCs&lt;/b&gt;&#xa;Windows 11 workstations&#xa;Domain-joined | VLAN 20&#xa;172.16.20.x (DHCP)&#xa;DNS: 172.16.20.20" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ede7f6;strokeColor=#4527a0;fontColor=#311b92;fontSize=11;" vertex="1" parent="s2">
+          <mxGeometry x="310" y="190" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Domain arrows -->
+        <mxCell id="s2e" value="AD Replication" style="edgeStyle=orthogonalEdgeStyle;rounded=0;fontSize=10;strokeColor=#4527a0;strokeWidth=2;dashed=1;" edge="1" source="s2a" target="s2b" parent="s2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s2f" value="RADIUS auth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;fontSize=10;strokeColor=#2e7d32;strokeWidth=2;" edge="1" source="s2c" target="s2a" parent="s2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s2g" value="Kerberos/LDAP" style="edgeStyle=orthogonalEdgeStyle;rounded=0;fontSize=10;strokeColor=#4527a0;strokeWidth=2;" edge="1" source="s2d" target="s2a" parent="s2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== n8n AUTOMATION ==================== -->
+        <mxCell id="s3" value="&lt;b&gt;n8n Automation&lt;/b&gt;&#xa;VM109 CDS-n8n | VLAN 10 Lab" style="swimlane;startSize=40;fillColor=#e3f9e5;strokeColor=#1b5e20;fontColor=#1b5e20;fontSize=13;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="780" y="90" width="350" height="180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3a" value="&lt;b&gt;n8n v2.8.3&lt;/b&gt;&#xa;Port: 5678&#xa;Ubuntu 24.04 | 16 GB RAM&#xa;IP: 172.16.10.30&#xa;Workflow automation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontColor=#1b5e20;fontSize=11;" vertex="1" parent="s3">
+          <mxGeometry x="20" y="50" width="300" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== PROXMOX INFRA ==================== -->
+        <mxCell id="s4" value="&lt;b&gt;Proxmox Infrastructure&lt;/b&gt;&#xa;SillyProxmox | 172.16.67.3 | VLAN 67 Mgmt" style="swimlane;startSize=40;fillColor=#fde8d2;strokeColor=#b46504;fontColor=#b46504;fontSize=13;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="780" y="300" width="350" height="210" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s4a" value="&lt;b&gt;Proxmox VE 9.1.4&lt;/b&gt;&#xa;Kernel: 6.17.4-2-pve&#xa;24 cores | 96 GB RAM&#xa;~2.6 TB ZFS (rpool/data)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#e65100;fontColor=#bf360c;fontSize=11;" vertex="1" parent="s4">
+          <mxGeometry x="20" y="50" width="305" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s4b" value="&lt;b&gt;Storage:&lt;/b&gt;  local-zfs (rpool/data) — images, rootdir&#xa;&lt;b&gt;ISO store:&lt;/b&gt;  local (/var/lib/vz) — iso, backup, templates&#xa;&lt;b&gt;Bridges:&lt;/b&gt;  vmbr0 (DHCP), vmbr1 (VLAN-aware), vmbr2 (isolated)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#e65100;fontColor=#bf360c;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="s4">
+          <mxGeometry x="20" y="130" width="305" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== NAS STORAGE ==================== -->
+        <mxCell id="s5" value="&lt;b&gt;NAS Storage&lt;/b&gt;&#xa;SillyNAS | TrueNAS 25.04.2.6" style="swimlane;startSize=40;fillColor=#e8f5e9;strokeColor=#1a5e20;fontColor=#1a5e20;fontSize=13;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="780" y="540" width="350" height="180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s5a" value="&lt;b&gt;STUDENT_STORAGE&lt;/b&gt;  (RAIDZ1, 4 disks)&#xa;SMB: student_homes → /mnt/STUDENT_STORAGE/homes&#xa;SMB: shared        → /mnt/STUDENT_STORAGE/shared" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontColor=#1b5e20;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="s5">
+          <mxGeometry x="20" y="50" width="305" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s5b" value="&lt;b&gt;CYBER_LAB&lt;/b&gt;  (single disk)&#xa;NFS: /mnt/CYBER_LAB/APT_CACHE → lab provisioning/PXE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontColor=#1b5e20;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="s5">
+          <mxGeometry x="20" y="120" width="305" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== WIFI / RADIUS ==================== -->
+        <mxCell id="s6" value="&lt;b&gt;WiFi (Aruba APIN0205)&lt;/b&gt;&#xa;SSIDs trunked on VLANs 10, 20, 30, 67" style="swimlane;startSize=40;fillColor=#e1f5fe;strokeColor=#006eaf;fontColor=#006eaf;fontSize=13;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="90" width="400" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s6a" value="&lt;b&gt;Aruba Instant VC&lt;/b&gt;&#xa;Firmware: 6.5.4.15_73677&#xa;RADIUS client → VM107 FreeRADIUS&#xa;MAC whitelist authentication" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b3e5fc;strokeColor=#006eaf;fontColor=#01579b;fontSize=11;" vertex="1" parent="s6">
+          <mxGeometry x="20" y="50" width="355" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s6b" value="VLANs broadcast on WiFi:&#xa;VLAN 10 Lab | VLAN 20 Classroom | VLAN 30 Guest" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b3e5fc;strokeColor=#006eaf;fontColor=#01579b;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="s6">
+          <mxGeometry x="20" y="140" width="355" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== CROSS-SERVICE CONNECTIONS ==================== -->
+        <!-- WiFi → FreeRADIUS -->
+        <mxCell id="e1" value="RADIUS auth&#xa;port 1812" style="edgeStyle=orthogonalEdgeStyle;rounded=0;fontSize=10;strokeColor=#2e7d32;strokeWidth=2;dashed=1;" edge="1" source="s6" target="s2" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1170" y="480" />
+              <mxPoint x="400" y="480" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

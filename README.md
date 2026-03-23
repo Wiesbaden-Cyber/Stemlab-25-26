@@ -38,6 +38,10 @@ After the 2024-2025 school year, the leading members of WHS Cyber collectively d
 
 For full topology and details see [`docs/network-overview.md`](docs/network-overview.md).
 
+**Topology diagrams** (open with [draw.io](https://app.diagrams.net)):
+- [`topology/network-topology.drawio`](topology/network-topology.drawio) — physical/logical network layout
+- [`topology/services-diagram.drawio`](topology/services-diagram.drawio) — services and applications layer
+
 ---
 
 ## Repository Structure
@@ -54,13 +58,17 @@ configs/
 └── nas/
     └── SillyNAS.md                    # TrueNAS network, pools & shares
 docs/
-├── network-overview.md                # Full topology diagram & notes
+├── network-overview.md                # Full topology & notes
+├── stemlab-drinks.md                  # Drink ordering service — API, DB schema, deployment
+├── windows-domain.md                  # Windows domain, DC VMs, FreeRADIUS
 └── guides/
     ├── aruba-ap-setup.md              # Aruba APIN0205 OS upgrade & IAP config
     ├── aruba-tftp-server.md           # TFTP server setup (for AP firmware)
     ├── aruba-radius-whitelist.md      # FreeRADIUS MAC whitelist for Aruba SSIDs
-    ├── domain-join.md                 # How to join Windows 11 to the domain
-    └── tailscale-openwrt.md           # OpenWrt + Tailscale exit node setup
+    └── domain-join.md                 # How to join Windows 11 to the domain
+topology/
+├── network-topology.drawio            # Physical/logical network diagram (draw.io)
+└── services-diagram.drawio            # Services & applications layer (draw.io)
 resources/
 ├── WHS-Cyber-Student-Guidelines.docx  # Program student guidelines
 ├── WHS-Cyber-Donated-Resources.xlsx   # Equipment & donated resources inventory
