@@ -9,6 +9,12 @@ After the 2024-2025 school year, the leading members of WHS Cyber collectively d
 | Cyber Laptop Inventory | [Cyber-Laptop-Inventory.xlsx](resources/Cyber-Laptop-Inventory.xlsx) |
 | Robotics & Coding Laptop Inventory | [Robotics-Laptop-Inventory.xlsx](resources/Robotics-Laptop-Inventory.xlsx) |
 
+### Service Repositories
+
+| Service | Repo | Description |
+|---------|------|-------------|
+| stemlab-drinks | [Wiesbaden-Cyber/stemlab-drinks](https://github.com/Wiesbaden-Cyber/stemlab-drinks) | Drink ordering service (Node.js + PostgreSQL) |
+
 ---
 
 ## Network Summary
