@@ -53,7 +53,7 @@ For security hardening log and pending items see [`docs/security.md`](docs/secur
 ### Services & Applications
 ![Services Diagram](topology/services-diagram.png)
 
-> Source files (editable with [draw.io](https://app.diagrams.net)): [`network-topology.drawio`](topology/network-topology.drawio) · [`services-diagram.drawio`](topology/services-diagram.drawio)
+> Diagrams created with [draw.io](https://app.diagrams.net).
 
 ---
 
