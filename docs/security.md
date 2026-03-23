@@ -25,6 +25,12 @@ Tracks security changes made to the StemLab environment.
 |--------|--------|
 | WinRM firewall rule scoped | Replaced broad `allow any` rule with `RemoteIP: 172.16.20.0/24, 172.16.67.0/28` only |
 
+### SillyRouter
+
+| Change | Detail |
+|--------|--------|
+| ACL DOLUS-RESTRICT applied to Vlan10 inbound | Blocks dolus (172.16.10.58) from reaching Proxmox (172.16.67.3) port 8006 only — all other VLAN 10 clients unaffected |
+
 ### SillyNAS (172.16.67.4)
 
 | Change | Detail |
@@ -37,8 +43,7 @@ Tracks security changes made to the StemLab environment.
 
 | # | Item | Severity | Action Required |
 |---|------|----------|-----------------|
-| 1 | Block dolus from Proxmox web UI (port 8006) | Critical | Apply router ACL — see below |
-| 2 | Change ADMIN_PIN from default | High | Edit `.env` on dolus, restart backend |
+| 1 | Change ADMIN_PIN from default | High | Edit `.env` on dolus, restart backend |
 
 ### Router ACL for #1 (run on SillyRouter)
 
