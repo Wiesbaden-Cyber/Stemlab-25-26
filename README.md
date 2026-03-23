@@ -13,7 +13,7 @@ After the 2024-2025 school year, the leading members of WHS Cyber collectively d
 
 ## Network Summary
 
-**Domain:** `silly.lab.local`
+**Domain:** `stemlab.lan`
 **Internet:** Starlink (CGNAT — no inbound port forwarding)
 **Remote access:** Tailscale VPN overlay
 

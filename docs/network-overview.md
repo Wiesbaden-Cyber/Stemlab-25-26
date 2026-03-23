@@ -1,6 +1,6 @@
 # StemLab Network Overview
 **Last updated:** 2026-03-23
-**Domain:** `silly.lab.local`
+**Domain:** `stemlab.lan`
 **Internet:** Starlink (CGNAT — no inbound port forwarding)
 **Remote access:** Tailscale VPN
 
