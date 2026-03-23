@@ -18,6 +18,7 @@ Tracks security changes made to the StemLab environment.
 | SSH X11 Forwarding disabled | Added `X11Forwarding no` to `/etc/ssh/sshd_config` |
 | `ferry` removed from `lxd` group | LXD group membership is a trivial local root escalation path |
 | CSP `script-src-attr` fixed | Helmet v8 default `'none'` was blocking all `onclick` handlers — set to `'unsafe-inline'` |
+| Express `trust proxy` set to 1 | Cloudflare Tunnel injects `X-Forwarded-For`; without `app.set('trust proxy', 1)` express-rate-limit throws `ERR_ERL_UNEXPECTED_X_FORWARDED_FOR` and rejects every auth request — PIN appeared broken for all users |
 
 ### Windows Server (172.16.20.20)
 
@@ -65,6 +66,6 @@ This blocks only dolus (172.16.10.58) from reaching Proxmox port 8006. All other
 
 ## Notes
 
-- Admin PIN for drinks.velocit.ee: rate-limited to 5 attempts/IP/15 min via Cloudflare. Direct LAN access to port 3000 is now blocked.
+- Admin PIN for drinks.velocit.ee: rate-limited to 5 attempts/IP/15 min (per real client IP via `X-Forwarded-For`). Direct LAN access to port 3000 is now blocked.
 - `ferry` is still in the `docker` group (required to manage containers). Docker group = effective root — keep SSH key secured and passphrase-protected.
 - PostgreSQL is not exposed on the host — only accessible inside the Docker bridge network.
