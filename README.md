@@ -2,11 +2,12 @@
 
 After the 2024-2025 school year, the leading members of WHS Cyber collectively decided to purge the former Stemlab network and services and build from the ground up. This repository contains the progress, configurations, and topology of the new network so it will be easier for future generations of WHS Cyber to maintain.
 
-**Equipment Inventory:** https://docs.google.com/spreadsheets/d/1aUcI05Rr5SPrz92-eQHCEz22Fs3st3txNgSH49QERJQ/edit?gid=1553455283#gid=1553455283
-
-**Robotics Laptop Inventory:** https://docs.google.com/spreadsheets/d/10iJD4ZSQDPhJi8wSGX7vu1GKLMVjeyPoqO32ILrjyg4/edit?gid=1050636524#gid=1050636524
-
-**Cyber Laptops Inventory:** https://docs.google.com/spreadsheets/d/19fo2TNyiHjBWy3HBkygxVRyiggmL0TBg1rgQep-RWFk/edit?gid=1975505725#gid=1975505725
+| Resource | File |
+|----------|------|
+| Program Student Guidelines | [WHS-Cyber-Student-Guidelines.docx](resources/WHS-Cyber-Student-Guidelines.docx) |
+| Donated Resources / Equipment | [WHS-Cyber-Donated-Resources.xlsx](resources/WHS-Cyber-Donated-Resources.xlsx) |
+| Cyber Laptop Inventory | [Cyber-Laptop-Inventory.xlsx](resources/Cyber-Laptop-Inventory.xlsx) |
+| Robotics & Coding Laptop Inventory | [Robotics-Laptop-Inventory.xlsx](resources/Robotics-Laptop-Inventory.xlsx) |
 
 ---
 
@@ -60,4 +61,9 @@ docs/
     ├── aruba-radius-whitelist.md      # FreeRADIUS MAC whitelist for Aruba SSIDs
     ├── domain-join.md                 # How to join Windows 11 to the domain
     └── tailscale-openwrt.md           # OpenWrt + Tailscale exit node setup
+resources/
+├── WHS-Cyber-Student-Guidelines.docx  # Program student guidelines
+├── WHS-Cyber-Donated-Resources.xlsx   # Equipment & donated resources inventory
+├── Cyber-Laptop-Inventory.xlsx        # Cyber laptop inventory
+└── Robotics-Laptop-Inventory.xlsx     # Robotics & coding laptop inventory
 ```
