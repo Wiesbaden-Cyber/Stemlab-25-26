@@ -43,6 +43,7 @@ After the 2024-2025 school year, the leading members of WHS Cyber collectively d
 | SillyEdgeSwitch | Classroom edge switch | 172.16.67.5 | Cisco Catalyst 2960 | IOS 15.0(2)SE11 |
 
 For full topology and details see [`docs/network-overview.md`](docs/network-overview.md).
+For security hardening log and pending items see [`docs/security.md`](docs/security.md).
 
 **Topology diagrams** (open with [draw.io](https://app.diagrams.net)):
 - [`topology/network-topology.drawio`](topology/network-topology.drawio) — physical/logical network layout
