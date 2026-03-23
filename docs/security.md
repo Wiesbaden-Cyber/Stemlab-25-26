@@ -25,6 +25,12 @@ Tracks security changes made to the StemLab environment.
 |--------|--------|
 | WinRM firewall rule scoped | Replaced broad `allow any` rule with `RemoteIP: 172.16.20.0/24, 172.16.67.0/28` only |
 
+### SillyNAS (172.16.67.4)
+
+| Change | Detail |
+|--------|--------|
+| SMB Transport Encryption Required | TrueNAS UI → Shares → SMB → Transport Encryption Behavior set to "Required" — enforces SMB3 signing and encryption on all connections |
+
 ---
 
 ## Pending
@@ -33,7 +39,6 @@ Tracks security changes made to the StemLab environment.
 |---|------|----------|-----------------|
 | 1 | Block dolus from Proxmox web UI (port 8006) | Critical | Apply router ACL — see below |
 | 2 | Change ADMIN_PIN from default | High | Edit `.env` on dolus, restart backend |
-| 3 | TrueNAS SMB signing required | Medium | TrueNAS UI → Shares → SMB → Advanced → enable SMB2/3 Signing Required |
 
 ### Router ACL for #1 (run on SillyRouter)
 
