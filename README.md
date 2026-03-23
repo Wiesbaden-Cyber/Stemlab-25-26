@@ -45,9 +45,15 @@ After the 2024-2025 school year, the leading members of WHS Cyber collectively d
 For full topology and details see [`docs/network-overview.md`](docs/network-overview.md).
 For security hardening log and pending items see [`docs/security.md`](docs/security.md).
 
-**Topology diagrams** (open with [draw.io](https://app.diagrams.net)):
-- [`topology/network-topology.drawio`](topology/network-topology.drawio) — physical/logical network layout
-- [`topology/services-diagram.drawio`](topology/services-diagram.drawio) — services and applications layer
+## Topology
+
+### Network Layout
+![Network Topology](topology/network-topology.png)
+
+### Services & Applications
+![Services Diagram](topology/services-diagram.png)
+
+> Source files (editable with [draw.io](https://app.diagrams.net)): [`network-topology.drawio`](topology/network-topology.drawio) · [`services-diagram.drawio`](topology/services-diagram.drawio)
 
 ---
 
