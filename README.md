@@ -44,6 +44,7 @@ After the 2024-2025 school year, the leading members of WHS Cyber collectively d
 
 For full topology and details see [`docs/network-overview.md`](docs/network-overview.md).
 For security hardening log and pending items see [`docs/security.md`](docs/security.md).
+For a complete from-scratch rebuild guide see [`docs/setup-guide.md`](docs/setup-guide.md).
 
 ## Topology
 
