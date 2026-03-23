@@ -53,5 +53,11 @@ configs/
 └── nas/
     └── SillyNAS.md                    # TrueNAS network, pools & shares
 docs/
-└── network-overview.md                # Full topology diagram & notes
+├── network-overview.md                # Full topology diagram & notes
+└── guides/
+    ├── aruba-ap-setup.md              # Aruba APIN0205 OS upgrade & IAP config
+    ├── aruba-tftp-server.md           # TFTP server setup (for AP firmware)
+    ├── aruba-radius-whitelist.md      # FreeRADIUS MAC whitelist for Aruba SSIDs
+    ├── domain-join.md                 # How to join Windows 11 to the domain
+    └── tailscale-openwrt.md           # OpenWrt + Tailscale exit node setup
 ```
