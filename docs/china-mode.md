@@ -11,22 +11,25 @@
 ```
 VLAN 20 Client
      │
-     ▼ DNS query
-CT 200: Pi-hole (172.16.20.50:53)
-  ├── Upstream: Alibaba DNS (223.5.5.5, 223.6.6.6)
-  ├── Blocks: ~86K default domains + 200+ GFW-specific domains
-  └── Allows: Chinese services (Baidu, JD, Taobao, WeChat, etc.)
+     ▼ DNS query → 172.16.20.21 (Pi-hole)
      │
+     ├─ stemlab.lan / reverse .20.x → forwarded to DC (172.16.20.20)
+     │  (AD/domain joins, internal services continue to work)
+     │
+     └─ everything else:
+          ├─ GFW blocklist → 0.0.0.0 (blocked)
+          └─ allowed → Alibaba DNS 223.5.5.5 / 223.6.6.6
+
      ▼ HTTP traffic (port 80)
-CT 200: nginx (172.16.20.50:80)
+CT 200: nginx (172.16.20.21:80)
   └── Injects geo-spoof headers:
       X-Forwarded-For: 61.135.169.125 (Beijing IP)
       Accept-Language: zh-CN,zh;q=0.9
       CF-IPCountry: CN
-     │
-     ▼ HTTP responses
-CT 200: mitmproxy (172.16.20.50:8081)
-  └── inject_ads.py: Injects Baidu-style ad banner into HTML pages
+
+     ▼ HTTP responses (mitmproxy port 8081)
+CT 200: mitmproxy
+  └── inject_ads.py: Baidu-style ad banner into HTML pages
 ```
 
 ---
@@ -41,14 +44,16 @@ CT 200: mitmproxy (172.16.20.50:8081)
 | vCPU | 2 |
 | RAM | 1 GB |
 | Disk | 8 GB (local-zfs) |
-| Network | vmbr1, VLAN tag 20, static 172.16.20.50/24, GW 172.16.20.1 |
-| onboot | **0** (does NOT start automatically) |
+| Network | vmbr1, VLAN tag 20, static **172.16.20.21**/24, GW 172.16.20.1 |
+| onboot | **0** — never starts automatically; only via china-on.sh |
+
+> **IP note:** 172.16.20.21 is within the router's DHCP excluded range (`172.16.20.1–172.16.20.25`), so it can never be assigned to a DHCP client.
 
 ### Services inside CT 200
 
 | Service | Port | Purpose |
 |---------|------|---------|
-| pihole-FTL | :53 UDP/TCP | DNS filtering, upstream Alibaba 223.5.5.5 |
+| pihole-FTL | :53 UDP/TCP | DNS filtering; upstream Alibaba 223.5.5.5; AD queries → DC |
 | pihole-FTL | :8080 | Pi-hole web admin |
 | nginx | :80 | Transparent HTTP proxy with CN header injection |
 | nginx | :8888 | China Mode status page |
@@ -56,29 +61,65 @@ CT 200: mitmproxy (172.16.20.50:8081)
 
 ---
 
-## Toggle: Enabling China Mode
+## Toggling China Mode
 
-### Step 1 — Start CT 200
-Run on Proxmox or any machine with SSH access:
+Both scripts live on Proxmox at `/opt/china-mode/scripts/` and in this repo at `configs/china-mode/scripts/`.
+
+They **fully automate** the router config change via `router_toggle.py` (Python/netmiko). No manual CLI required.
+
+### Enable China Mode
+
 ```bash
 bash configs/china-mode/scripts/china-on.sh
 ```
-Or manually:
+
+Prompts for router credentials once (or set env vars to skip prompts):
 ```bash
-ssh root@172.16.67.3 "pct start 200"
+export ROUTER_USER=admin
+export ROUTER_PASS=yourpassword
+export ROUTER_ENABLE=yourenablesecret
+bash configs/china-mode/scripts/china-on.sh
 ```
 
-### Step 2 — Apply router config (on SillyRouter)
+**What it does:**
+1. Starts CT 200 on Proxmox
+2. Waits for Pi-hole to be healthy
+3. SSHes to SillyRouter via netmiko and applies:
+   - CLASSROOM DHCP pool DNS → `172.16.20.21` (Pi-hole only)
+   - Adds ACL `CHINA-MODE-DNS-LOCK` to Vlan20 (prevents DNS bypass)
+   - Clears DHCP bindings → clients renew with new DNS
+   - `wr mem`
+
+### Disable China Mode
+
+```bash
+bash configs/china-mode/scripts/china-off.sh
+```
+
+**What it does:**
+1. SSHes to SillyRouter and restores:
+   - CLASSROOM DHCP pool DNS → `172.16.20.20 8.8.8.8 1.1.1.1` (DC + public)
+   - Removes ACL from Vlan20
+   - Clears DHCP bindings
+   - `wr mem`
+2. Stops CT 200
+
+---
+
+## Router Config Reference
+
+These are the exact changes `router_toggle.py` applies. For manual override:
+
+### China Mode ON
 ```
 conf t
-!
 ip dhcp pool CLASSROOM
  no dns-server
- dns-server 172.16.20.50
+ dns-server 172.16.20.21
 !
 ip access-list extended CHINA-MODE-DNS-LOCK
- 10 permit udp any host 172.16.20.50 eq 53
- 20 permit tcp any host 172.16.20.50 eq 53
+ 10 permit udp any host 172.16.20.21 eq 53
+ 20 permit tcp any host 172.16.20.21 eq 53
  30 deny   udp any any eq 53 log
  40 deny   tcp any any eq 53 log
  50 permit ip any any
@@ -91,26 +132,12 @@ clear ip dhcp binding *
 wr mem
 ```
 
----
-
-## Toggle: Disabling China Mode
-
-### Step 1 — Stop CT 200
-```bash
-bash configs/china-mode/scripts/china-off.sh
-```
-Or manually:
-```bash
-ssh root@172.16.67.3 "pct stop 200"
-```
-
-### Step 2 — Apply router config (on SillyRouter)
+### China Mode OFF
 ```
 conf t
-!
 ip dhcp pool CLASSROOM
  no dns-server
- dns-server 1.1.1.1 8.8.8.8
+ dns-server 172.16.20.20 8.8.8.8 1.1.1.1
 !
 interface Vlan20
  no ip access-group CHINA-MODE-DNS-LOCK in
@@ -120,7 +147,21 @@ clear ip dhcp binding *
 wr mem
 ```
 
-> Note: The `CHINA-MODE-DNS-LOCK` ACL definition remains on the router but is not applied. Safe to leave.
+---
+
+## DNS Behavior
+
+| Query | China Mode ON | China Mode OFF |
+|-------|--------------|----------------|
+| `google.com` | `0.0.0.0` (blocked by Pi-hole) | Resolves normally |
+| `youtube.com` | `0.0.0.0` (blocked) | Resolves normally |
+| `baidu.com` | Resolves via Alibaba DNS | Resolves via DC/public |
+| `stemlab.lan` | Forwarded to DC `.20` ✓ | Handled by DC `.20` ✓ |
+| `win-upu3jkf7n79.stemlab.lan` | Resolves via DC `.20` ✓ | Resolves via DC `.20` ✓ |
+| Reverse DNS `.20.x` | Forwarded to DC `.20` ✓ | Handled by DC `.20` ✓ |
+| VPN domains | `0.0.0.0` (blocked) | Resolves normally |
+
+AD domain joins, GPOs, Kerberos, and internal services **continue to work** when China Mode is ON.
 
 ---
 
@@ -128,61 +169,61 @@ wr mem
 
 File: `configs/china-mode/pihole/blocklist-gfw.txt`
 
-Covers:
-- **Search/Productivity:** Google (all services), Gmail
-- **Social media:** Facebook, Instagram, WhatsApp, Twitter/X, Telegram, Discord, Snapchat, Reddit, Weibo (external)
-- **Video:** YouTube, Netflix, Twitch, TikTok (international)
-- **Reference:** Wikipedia, Wikimedia
-- **Messaging:** Signal, WhatsApp, Telegram
-- **VPNs:** NordVPN, ExpressVPN, ProtonVPN, Mullvad, Tor Project, and 10+ others
-- **News:** NYT, BBC, Guardian, WSJ, CNN, Reuters, Bloomberg, DW, RFA, VOA
-- **Human rights:** Amnesty, HRW, Falun Dafa, Epoch Times, Free Tibet
-- **Dev tools:** GitHub (raw/gist), some cloud providers
-- **Alternative DNS:** 8.8.8.8, 1.1.1.1, 9.9.9.9 (force use of Pi-hole)
-- **Cloud storage:** Dropbox, Slack
-- **Music:** Spotify
+Loaded into Pi-hole gravity DB. Categories:
 
-Allowed (resolves normally via Alibaba DNS):
-- Baidu, JD.com, Taobao, Alibaba, Tencent, WeChat, Weibo (domestic), Bilibili, iQiyi, Youku, NetEase, Sina, Sohu
+- Google (all services), Gmail, YouTube
+- Social: Facebook, Instagram, WhatsApp, Twitter/X, Telegram, Discord, Snapchat, Reddit
+- Reference: Wikipedia
+- Messaging: Signal
+- Video: Netflix, Twitch, TikTok (international)
+- VPNs: NordVPN, ExpressVPN, ProtonVPN, Mullvad, Tor, 10+ others
+- News: NYT, BBC, Guardian, WSJ, CNN, Reuters, Bloomberg, DW, RFA, VOA, etc.
+- Human rights: Amnesty, HRW, Falun Dafa, Free Tibet, Epoch Times
+- Dev: GitHub (raw/gist)
+- Alt DNS: 8.8.8.8, 1.1.1.1, 9.9.9.9 (forces use of Pi-hole)
 
 ---
 
-## Cisco ACL Reference
+## Cisco ACL
 
 Applied to `interface Vlan20 inbound` when China Mode is ON:
 
 ```
 ip access-list extended CHINA-MODE-DNS-LOCK
- 10 permit udp any host 172.16.20.50 eq 53   ! Allow Pi-hole DNS only
- 20 permit tcp any host 172.16.20.50 eq 53
- 30 deny   udp any any eq 53 log             ! Block all other DNS (bypass prevention)
+ 10 permit udp any host 172.16.20.21 eq 53   ! Only Pi-hole can serve DNS
+ 20 permit tcp any host 172.16.20.21 eq 53
+ 30 deny   udp any any eq 53 log             ! Block DNS bypass attempts
  40 deny   tcp any any eq 53 log
- 50 permit ip any any                        ! All other traffic passes
+ 50 permit ip any any                        ! All other traffic unaffected
 ```
 
-This prevents clients from bypassing Pi-hole by manually setting DNS to 8.8.8.8 or 1.1.1.1.
+When China Mode is OFF, the ACL definition is left on the router but is **not applied** to any interface.
 
 ---
 
 ## Verification
 
-After enabling China Mode, from a VLAN 20 client:
+After enabling, from a VLAN 20 client:
 
 ```bash
-# DNS check — should be blocked (returns 0.0.0.0)
-nslookup google.com
-nslookup youtube.com
-nslookup github.com
+nslookup google.com          # → 0.0.0.0 (blocked)
+nslookup baidu.com           # → resolves
+nslookup stemlab.lan         # → resolves via DC
+nslookup 172.16.20.20        # → reverse DNS via DC
+```
 
-# DNS check — should resolve
-nslookup baidu.com
-nslookup jd.com
+From Proxmox:
+```bash
+# Quick DNS check
+dig +short google.com @172.16.20.21     # 0.0.0.0
+dig +short baidu.com @172.16.20.21      # resolves
+dig +short stemlab.lan @172.16.20.21    # resolves via DC
 
 # Pi-hole admin
-http://172.16.20.50/admin
+http://172.16.20.21/admin
 
 # Status page
-http://172.16.20.50:8888
+http://172.16.20.21:8888
 ```
 
 ---
@@ -192,15 +233,18 @@ http://172.16.20.50:8888
 ```
 configs/china-mode/
 ├── pihole/
-│   └── blocklist-gfw.txt       GFW domain blocklist (loaded into Pi-hole gravity)
+│   └── blocklist-gfw.txt       GFW domain blocklist
 ├── nginx/
-│   └── nginx.conf              CN geo-spoof proxy config
+│   └── nginx.conf              CN geo-spoof proxy
 ├── mitmproxy/
-│   └── inject_ads.py           Baidu ad injection mitmproxy addon
+│   └── inject_ads.py           Baidu ad injection addon
 └── scripts/
-    ├── china-on.sh             Enable China Mode (starts CT, prints router config)
-    └── china-off.sh            Disable China Mode (stops CT, prints router config)
+    ├── china-on.sh             Enable (starts CT + auto-configures router)
+    ├── china-off.sh            Disable (auto-configures router + stops CT)
+    └── router_toggle.py        Python/netmiko router automation
 ```
+
+Deployed to Proxmox at `/opt/china-mode/scripts/`.
 
 ---
 
@@ -208,18 +252,17 @@ configs/china-mode/
 
 **Update blocklist:**
 ```bash
-# Edit configs/china-mode/pihole/blocklist-gfw.txt, then:
 scp configs/china-mode/pihole/blocklist-gfw.txt root@172.16.67.3:/tmp/
 ssh root@172.16.67.3 "pct push 200 /tmp/blocklist-gfw.txt /opt/china-mode/blocklist-gfw.txt"
 ssh root@172.16.67.3 "pct exec 200 -- /usr/local/bin/pihole updateGravity"
 ```
 
-**Check Pi-hole stats:**
+**View Pi-hole query log:**
 ```bash
 ssh root@172.16.67.3 "pct exec 200 -- pihole-FTL --stats"
 ```
 
-**View mitmproxy injection logs:**
+**View mitmproxy logs:**
 ```bash
 ssh root@172.16.67.3 "pct exec 200 -- journalctl -u mitmproxy-china -f"
 ```
