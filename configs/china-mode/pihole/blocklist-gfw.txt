@@ -1,0 +1,204 @@
+# GFW Simulation Blocklist — China Mode
+# Domains blocked by the Great Firewall of China
+# Format: one domain per line (Pi-hole adlist compatible)
+# Last updated: 2026-03-24
+
+# Google services
+google.com
+www.google.com
+mail.google.com
+drive.google.com
+docs.google.com
+maps.google.com
+translate.google.com
+calendar.google.com
+play.google.com
+accounts.google.com
+google.co.uk
+google.de
+google.fr
+googleapis.com
+googleusercontent.com
+googlevideo.com
+gstatic.com
+gmail.com
+googlemail.com
+
+# YouTube
+youtube.com
+www.youtube.com
+youtu.be
+ytimg.com
+yt3.ggpht.com
+googlevideo.com
+
+# Facebook / Meta
+facebook.com
+www.facebook.com
+m.facebook.com
+fb.com
+fbcdn.net
+instagram.com
+www.instagram.com
+cdninstagram.com
+whatsapp.com
+www.whatsapp.com
+whatsapp.net
+messenger.com
+oculus.com
+meta.com
+
+# Twitter / X
+twitter.com
+www.twitter.com
+x.com
+www.x.com
+t.co
+twimg.com
+abs.twimg.com
+
+# Telegram
+telegram.org
+t.me
+telegram.me
+web.telegram.org
+
+# Discord
+discord.com
+discordapp.com
+discord.gg
+discordapp.net
+
+# Reddit
+reddit.com
+www.reddit.com
+redd.it
+redditmedia.com
+reddituploads.com
+redditsave.com
+i.redd.it
+v.redd.it
+
+# Wikipedia
+wikipedia.org
+en.wikipedia.org
+de.wikipedia.org
+zh.wikipedia.org
+wikimedia.org
+wiktionary.org
+
+# Signal
+signal.org
+signal.me
+
+# Snapchat
+snapchat.com
+sc-cdn.net
+
+# TikTok (international — CN version bypassed)
+tiktok.com
+www.tiktok.com
+musical.ly
+tiktokcdn.com
+
+# Twitch
+twitch.tv
+www.twitch.tv
+
+# Netflix
+netflix.com
+www.netflix.com
+nflxvideo.net
+nflximg.net
+nflxext.com
+
+# Spotify
+spotify.com
+www.spotify.com
+spotifycdn.com
+scdn.co
+
+# GitHub (sometimes blocked)
+github.com
+raw.githubusercontent.com
+gist.github.com
+github.io
+
+# Google Cloud / AWS / Azure (selective)
+cloud.google.com
+aws.amazon.com
+azure.microsoft.com
+
+# VPN and proxy tools
+nordvpn.com
+expressvpn.com
+privateinternetaccess.com
+torproject.org
+www.torproject.org
+protonvpn.com
+mullvad.net
+tunnelbear.com
+hide.me
+hotspotshield.com
+cyberghostvpn.com
+ipvanish.com
+surfshark.com
+
+# News outlets
+nytimes.com
+www.nytimes.com
+theguardian.com
+bbc.com
+bbc.co.uk
+bbci.co.uk
+wsj.com
+washingtonpost.com
+cnn.com
+edition.cnn.com
+reuters.com
+apnews.com
+bloomberg.com
+ft.com
+economist.com
+huffpost.com
+buzzfeed.com
+vox.com
+axios.com
+politico.com
+thehill.com
+vice.com
+dw.com
+rfa.org
+radiofreeasia.org
+voanews.com
+
+# Human rights / dissident
+amnesty.org
+hrw.org
+rsf.org
+freetibet.org
+dalailama.com
+falundafa.org
+epochtimes.com
+ntdtv.com
+
+# Google DNS / alternative DNS (force use of Pi-hole)
+dns.google
+8.8.8.8
+8.8.4.4
+1.1.1.1
+1.0.0.1
+9.9.9.9
+208.67.222.222
+
+# Dropbox
+dropbox.com
+www.dropbox.com
+
+# Slack
+slack.com
+app.slack.com
+
+# Zoom (partially blocked in CN)
+zoom.us
+zoom.com

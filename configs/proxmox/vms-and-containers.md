@@ -10,6 +10,7 @@
 | VMID | Name | Status | vCPU | RAM | Disk | Network | Notes |
 |------|------|--------|------|-----|------|---------|-------|
 | 100 | Tailscale | Running | 1 | 256 MB | 12 GB | vmbr1 (DHCP) | Tailscale relay/exit node. Unprivileged with TUN passthrough. `onboot: 1` |
+| 200 | china-mode | Stopped | 2 | 1 GB | 8 GB | vmbr1 tag=20, 172.16.20.50/24 | China Mode GFW stack. Pi-hole (Alibaba DNS), nginx (CN headers), mitmproxy (ad inject). `onboot: 0` — started manually via china-on.sh |
 
 ---
 
