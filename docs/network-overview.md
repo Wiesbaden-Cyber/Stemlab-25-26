@@ -1,5 +1,5 @@
 # StemLab Network Overview
-**Last updated:** 2026-03-23
+**Last updated:** 2026-03-25
 **Domain:** `stemlab.lan`
 **Internet:** Starlink (CGNAT — no inbound port forwarding)
 **Remote access:** Tailscale VPN
@@ -93,7 +93,8 @@
 
 | IP | Device |
 |----|--------|
-| 172.16.10.58 | dolus (stemlab-drinks server) |
+| 172.16.10.58 | dolus (stemlab-drinks server, Ubuntu 24.04) |
+| 172.16.10.175 | Home Assistant (HAOS, port 8123) |
 | 172.16.10.91 | Reserved |
 | 172.16.10.1–.25 | Infrastructure reserved |
 | 172.16.20.1–.25 | Infrastructure reserved |
