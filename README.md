@@ -88,7 +88,8 @@ docs/
     ├── aruba-ap-setup.md              # Aruba APIN0205 OS upgrade & IAP config
     ├── aruba-tftp-server.md           # TFTP server setup (for AP firmware)
     ├── aruba-radius-whitelist.md      # FreeRADIUS MAC whitelist for Aruba SSIDs
-    └── domain-join.md                 # How to join Windows 11 to the domain
+    ├── domain-join.md                 # How to join Windows 11 to the domain
+    └── trust-relationship-hardening.md # NTP, machine account & local admin GPO
 topology/
 ├── network-topology.png               # Physical/logical network diagram
 └── services-diagram.png               # Services & applications layer

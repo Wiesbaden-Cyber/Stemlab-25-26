@@ -4,6 +4,30 @@ Tracks security changes made to the StemLab environment.
 
 ---
 
+## Applied — 2026-05-01
+
+Preventive maintenance against recurring "trust relationship between this workstation and the primary domain failed" errors on classroom and robotics PCs.
+
+### Windows Server (172.16.20.20) — NTP authoritative time
+
+| Change | Detail |
+|--------|--------|
+| PDC emulator now external NTP-sourced | Was `Type=NT5DS` with `Source: Free-running System Clock` (DC clock was drifting; observed 18.8 s offset from real time). Reconfigured: `Type=NTP`, `AnnounceFlags=5` (reliable), `manualpeerlist=de.pool.ntp.org,0x9 ptbtime1.ptb.de,0x9 ptbtime2.ptb.de,0x9 time.cloudflare.com,0x9`. Verify with `w32tm /query /source` — should return one of the configured peers, not `Free-running System Clock`. |
+| Domain members unchanged | Members stay on `Type=NT5DS` and pull from the now-correct PDC. No member-side change required. Kerberos clock-skew failures should no longer slowly accumulate. |
+
+### Active Directory — Group Policy
+
+| Change | Detail |
+|--------|--------|
+| GPO **Stemlab - Machine Account Hardening** | New GPO linked at domain root. Sets `HKLM\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters\MaximumPasswordAge = 120` (default 30). Increases the window before a machine account password rotation can desync and cause trust failures. |
+| GPO **Stemlab - Local Admin Enforcement** | New GPO linked at domain root. Computer Configuration → Startup script: `\\stemlab.lan\NETLOGON\enforce-local-admin.ps1`. Idempotently ensures a local `admin` user exists with a known password, `PasswordNeverExpires=true`, member of the local Administrators group. **Skips Domain Controllers** (`Win32_ComputerSystem.DomainRole` 4/5) — on a DC `Get-LocalUser`/`New-LocalUser` would fall through to AD and create domain objects. |
+
+The `admin` account is intended as a break-glass local administrator on each domain-joined workstation, used only when domain trust is broken. **The shared password is stored in `\\stemlab.lan\NETLOGON\enforce-local-admin.ps1` (readable by Authenticated Users via SYSVOL replication) and in the operator password manager — not in this repository.** Lab/educational environment; risk explicitly accepted. To rotate, edit the script in `C:\Windows\SYSVOL\sysvol\stemlab.lan\scripts\` on the PDC and reboot members (or trigger gpupdate + run the script manually).
+
+See [`docs/guides/trust-relationship-hardening.md`](guides/trust-relationship-hardening.md) for the full procedure, verification steps, and post-rollout checklist.
+
+---
+
 ## Applied — 2026-03-23
 
 ### dolus (172.16.10.58) — stemlab-drinks server

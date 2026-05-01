@@ -108,10 +108,16 @@ Notable groups:
 | Default Domain Controllers Policy | OU=Domain Controllers | Enabled | 2026-02-12 |
 | Student Home Drive | stemlab.lan | Enabled | 2026-03-12 |
 | Network File Sharing | stemlab.lan | Enabled | 2026-03-12 |
+| Stemlab - Machine Account Hardening | stemlab.lan | Enabled | 2026-05-01 |
+| Stemlab - Local Admin Enforcement | stemlab.lan | Enabled | 2026-05-01 |
 
 **Student Home Drive** — maps a home drive for student accounts (applied to all Authenticated Users domain-wide).
 
 **Network File Sharing** — enables network file sharing firewall rules domain-wide.
+
+**Stemlab - Machine Account Hardening** — extends domain member machine account password rotation (`MaximumPasswordAge`) from the default 30 days to 120 days, reducing the rate at which infrequently-online lab PCs fall out of sync and break the secure channel.
+
+**Stemlab - Local Admin Enforcement** — startup PowerShell script (`\\stemlab.lan\NETLOGON\enforce-local-admin.ps1`) idempotently maintains a break-glass local `admin` user on every member machine, with a known password, `PasswordNeverExpires=true`, in the local Administrators group. Script skips Domain Controllers explicitly. See [`docs/guides/trust-relationship-hardening.md`](guides/trust-relationship-hardening.md).
 
 ---
 
