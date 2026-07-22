@@ -68,7 +68,12 @@ See [`docs/guides/trust-relationship-hardening.md`](guides/trust-relationship-ha
 
 | # | Item | Severity | Action Required |
 |---|------|----------|-----------------|
-| 1 | Change ADMIN_PIN from default | High | Edit `.env` on dolus, restart backend |
+
+## Resolved — 2026-07-22
+
+| Item | Resolution |
+|------|-----------|
+| ADMIN_PIN default fallback | The deployed `.env` on dolus already held a non-default PIN. Additionally, the code-level issue is now fixed in `stemlab-drinks`: the app previously fell back to the public default `"4321"` if `ADMIN_PIN` was ever unset; it now throws at startup instead, so a missing/unset PIN can no longer silently downgrade admin auth. |
 
 ### Router ACL for #1 (run on SillyRouter)
 
@@ -90,6 +95,6 @@ This blocks only dolus (172.16.10.58) from reaching Proxmox port 8006. All other
 
 ## Notes
 
-- Admin PIN for drinks.velocit.ee: rate-limited to 5 attempts/IP/15 min (per real client IP via `X-Forwarded-For`). Direct LAN access to port 3000 is now blocked.
+- Admin PIN for drinks.whslab.net: rate-limited to 5 attempts/IP/15 min (per real client IP via `X-Forwarded-For`), enforced on all admin endpoints (menu CRUD, orders list/fulfill/cancel/flush) — not just the login check endpoint. Direct LAN access to port 3000 is now blocked.
 - `ferry` is still in the `docker` group (required to manage containers). Docker group = effective root — keep SSH key secured and passphrase-protected.
 - PostgreSQL is not exposed on the host — only accessible inside the Docker bridge network.

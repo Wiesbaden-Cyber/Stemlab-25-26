@@ -39,7 +39,7 @@ StemLab is the network infrastructure operated by WHS Cyber at Wiesbaden High Sc
 - Wireless access via Aruba APs with WPA2-Enterprise (RADIUS), a student/staff SSID, and a guest SSID
 - A Proxmox hypervisor running all server VMs and containers
 - A TrueNAS storage server providing SMB home drives and shared storage
-- The `stemlab-drinks` drink ordering service, publicly accessible at `https://drinks.velocit.ee`
+- The `stemlab-drinks` drink ordering service, publicly accessible at `https://drinks.whslab.net`
 - Remote management access via Tailscale VPN (required because Starlink uses CGNAT)
 
 **Who maintains it:**
@@ -76,7 +76,7 @@ Before starting, download and have ready:
 | Aruba Instant firmware: `ArubaInstant_Taurus_6.5.4.15_73677` | Aruba support portal or internal archive |
 | Cloudflare account (free tier) | https://dash.cloudflare.com |
 | Tailscale account | https://tailscale.com |
-| Domain `velocit.ee` (for drinks service) | Namecheap or iwantmyname — add to Cloudflare after purchase |
+| Domain `whslab.net` (for drinks service) | Namecheap or iwantmyname — add to Cloudflare after purchase |
 
 ### 2.3 Credentials and Secrets
 
@@ -149,7 +149,7 @@ Power on devices in this order to avoid DHCP/spanning-tree issues:
 
 ### 3.4 Connecting to Starlink
 
-Starlink uses CGNAT — there is no public IP and no inbound port forwarding. The WAN interface on SillyRouter receives a DHCP address from Starlink. This is normal and expected. All external access to internal services uses Cloudflare Tunnel (for drinks.velocit.ee) or Tailscale VPN (for management).
+Starlink uses CGNAT — there is no public IP and no inbound port forwarding. The WAN interface on SillyRouter receives a DHCP address from Starlink. This is normal and expected. All external access to internal services uses Cloudflare Tunnel (for drinks.whslab.net) or Tailscale VPN (for management).
 
 ---
 
@@ -1100,7 +1100,7 @@ After the master is configured, connect the remaining APs to trunk ports on Sill
 
 **Host:** dolus (Ubuntu 24.04 LXC on SillyProxmox)
 **Internal IP:** 172.16.10.58 (VLAN 10)
-**Public URL:** https://drinks.velocit.ee (Cloudflare Tunnel)
+**Public URL:** https://drinks.whslab.net (Cloudflare Tunnel)
 **User:** `ferry`
 
 Full service documentation is in [`docs/stemlab-drinks.md`](stemlab-drinks.md).
@@ -1210,7 +1210,7 @@ curl http://localhost:3000/api/menu
 
 ### 12.4 Setting Up Cloudflare Tunnel
 
-**Prerequisites:** The domain `velocit.ee` must already be purchased and added to Cloudflare. Its nameservers must point to Cloudflare.
+**Prerequisites:** The domain `whslab.net` must already be purchased and added to Cloudflare. Its nameservers must point to Cloudflare.
 
 1. Install `cloudflared` on dolus:
    ```bash
@@ -1237,21 +1237,21 @@ curl http://localhost:3000/api/menu
    credentials-file: /home/ferry/.cloudflared/<tunnel-UUID>.json
 
    ingress:
-     - hostname: drinks.velocit.ee
+     - hostname: drinks.whslab.net
        service: http://localhost:3000
      - service: http_status:404
    ```
 
 5. Create the DNS record in Cloudflare (this creates a CNAME pointing to the tunnel):
    ```bash
-   cloudflared tunnel route dns stemlab-drinks drinks.velocit.ee
+   cloudflared tunnel route dns stemlab-drinks drinks.whslab.net
    ```
 
 6. Test the tunnel manually:
    ```bash
    cloudflared tunnel run stemlab-drinks
    ```
-   Visit `https://drinks.velocit.ee` to confirm it loads.
+   Visit `https://drinks.whslab.net` to confirm it loads.
 
 7. Set up the tunnel as a systemd user service for auto-start:
    ```bash
@@ -1378,7 +1378,7 @@ Use this end-to-end checklist after a full rebuild to confirm every layer is fun
 
 - [ ] `docker ps` on dolus shows both containers running
 - [ ] `curl http://localhost:3000/api/menu` returns menu JSON
-- [ ] `https://drinks.velocit.ee` loads the customer order page from outside the network
+- [ ] `https://drinks.whslab.net` loads the customer order page from outside the network
 - [ ] Staff PIN authentication works on the `/staff.html` page
 - [ ] Order placement creates a record in the database
 - [ ] cloudflared systemd user service is enabled and active
@@ -1464,7 +1464,7 @@ Use this end-to-end checklist after a full rebuild to confirm every layer is fun
    docker compose down && docker compose up -d --build
    ```
 
-### drinks.velocit.ee not loading / Cloudflare Tunnel down
+### drinks.whslab.net not loading / Cloudflare Tunnel down
 
 1. Check the cloudflared service status:
    ```bash
