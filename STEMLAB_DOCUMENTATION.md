@@ -96,58 +96,74 @@ The **WHS Cyber StemLab** provides an enterprise-grade computing and networking 
 
 ### 2.2 Physical & Logical Topology
 
+```mermaid
+flowchart TD
+    %% Internet & Core Routing
+    WAN["Internet (Starlink)<br/><i>CGNAT — No Port Forwarding</i>"]
+    
+    subgraph RoutingCore["Routing Core"]
+        SR["<b>SillyRouter</b> (Cisco ISR C1112-8P)<br/>172.16.67.1/28 | IOS-XE 17.06.01a<br/>DHCP & Inter-VLAN Routing"]
+    end
+
+    subgraph SwitchingFabric["Switching Fabric"]
+        SS["<b>SillySwitch</b> (Cisco Catalyst 3750X-48P)<br/>172.16.67.2/28 | Core PoE Switch"]
+        SES["<b>SillyEdgeSwitch</b> (Cisco Catalyst 2960)<br/>172.16.67.5/28 | Classroom Access Switch"]
+    end
+
+    subgraph ProxmoxHost["SillyProxmox Hypervisor (172.16.67.3/28 | PVE 9.2.0)"]
+        subgraph Bridges["Active Bridge Architecture"]
+            VMBR2["<b>vmbr2</b> (enp4s0f0 - Intel I350)<br/>Master 802.1Q Trunk (VLAN 10, 20, 30, 67)"]
+            VMBR0["<b>vmbr0</b> (enp8s0f0)<br/>Untagged Access (192.168.1.44/24)"]
+            VMBR3["<b>vmbr3</b> (enp8s0f1)<br/>Internal OPNsense Trunk"]
+        end
+
+        subgraph Guests["VMs & LXC Containers"]
+            CT100["CT 100: Tailscale Subnet Relay (100.112.34.75)"]
+            CT112["CT 112: DNS-Secondary (172.16.10.34)"]
+            CT114["CT 114: DNS-2ndSecondary (172.16.20.22)"]
+            CT200["CT 200: China-Mode Pi-hole (172.16.20.21)"]
+            VM102["VM 102: Worker-1 (14 vCPU, 16GB RAM)"]
+            VM103["VM 103: PXE Boot / FOG (172.16.10.3)"]
+            VM105["VM 105: WindowsServer1776 PDC (172.16.20.20)"]
+            VM106["VM 106: UBUNTU-SERVER (24.04 LTS)"]
+            VM107["VM 107: FreeRADIUS + CA (172.16.20.100)"]
+            VM110["VM 110: velocitee Node (172.16.10.60)"]
+            VM111["VM 111: Wazuh SIEM (172.16.10.61)"]
+            VM113["VM 113: Home Assistant OS (172.16.20.x)"]
+        end
+    end
+
+    subgraph StorageUnit["SillyNAS Storage Server"]
+        TNAS["<b>SillyNAS</b> (TrueNAS SCALE 25.04.2.6)<br/>Mgmt: 172.16.67.4 | Data: 172.16.20.25<br/>STUDENT_STORAGE (RAIDZ1) & CYBER_LAB"]
+    end
+
+    subgraph WirelessInfra["Wireless Infrastructure"]
+        AP["<b>Aruba APIN0205</b> IAP Cluster<br/>Virtual Controller: 172.16.67.6"]
+        SSID1["SSID: stemlab (802.1X / MAC) -> VLAN 20"]
+        SSID2["SSID: stemlab-guest -> VLAN 30"]
+    end
+
+    subgraph LabEndpoints["Student & Classroom Endpoints"]
+        Z230["HP Z230 Workstations (VLAN 20)"]
+        Laptops["32x Dell Latitude 5400s (PXE Bench / VLAN 10 & 20)"]
+        Dolus["dolus Host: stemlab-drinks (172.16.10.58)"]
+    end
+
+    %% Links
+    WAN -->|Gi0/0/0 WAN DHCP| SR
+    SR -->|Gi0/1/0 Trunk 10,20,30,67| SS
+    SS -->|Gi1/0/25 Trunk 10,20,30,67| VMBR2
+    SS -->|Gi1/0/26 Trunk 20,67| TNAS
+    SS -->|Gi1/0/27 Trunk VLAN 20| SES
+    SS -->|Gi1/0/1-4 PoE Trunk| AP
+    SS -->|Gi1/0/10 Access VLAN 10| Dolus
+
+    VMBR2 --> Guests
+    AP --> SSID1
+    AP --> SSID2
+    SES --> Z230
+    SES --> Laptops
 ```
-                         ┌────────────────────────────────────────┐
-                         │          INTERNET (Starlink)           │
-                         │      CGNAT — No Inbound Port Maps      │
-                         └───────────────────┬────────────────────┘
-                                             │ WAN (DHCP) — Gi0/0/0
-                                  ┌──────────▼──────────┐
-                                  │     SillyRouter     │
-                                  │ Cisco ISR C1112-8P  │
-                                  │   172.16.67.1/28    │
-                                  │   IOS XE 17.06.01a  │
-                                  └──┬───────────────┬──┘
-                 Trunk (10, 20, 30, 67) │               │ Gi0/1/1–7 (Spare LAN)
-                        Gi0/1/0         │               │
-                                  ┌─────▼──────────┐
-                                  │   SillySwitch   │ (Core Switch)
-                                  │ Cisco C3750X   │ 172.16.67.2/28
-                                  │  48-Port PoE   │ IOS 15.0(2)SE
-                                  └──┬───┬───┬───┬─┘
-           ┌─────────────────────────┘   │   │   └─────────────────────────┐
-           │ Gi1/0/25                    │   │ Gi1/0/27                    │ Gi1/0/1-4, 43
-           │ Trunk (10,20,30,67)         │   │ Trunk (VLAN 20)             │ Trunk (10,20,30,67)
-           │ (enp4s0f0 / vmbr2)          │   │                             │
-┌──────────▼──────────┐                  │   │                  ┌──────────▼──────────┐
-│    SillyProxmox     │                  │   │                  │   Aruba APIN0205    │
-│  Proxmox VE 9.2.0   │                  │   │                  │  Instant AP Cluster │
-│   172.16.67.3/28    │                  │   │                  │   172.16.67.6 (VC)  │
-└──────────┬──────────┘                  │   │                  └─────────────────────┘
-           │ Active vmbr2 Bridges        │   │
-           ├─ CT 100: Tailscale (Relay)  │   │
-           ├─ CT 112: DNS-Secondary      │   │
-           ├─ CT 114: DNS-2ndSecondary   │   │
-           ├─ CT 200: China-Mode Pi-hole │   │
-           ├─ VM 101: OPNsense (Testing) │   │
-           ├─ VM 102: Worker-1 (14 Core) │   │
-           ├─ VM 103: PXE Boot Server    │   │
-           ├─ VM 104: DO-Local-Ubuntu    │   │
-           ├─ VM 105: WinServer1776 (DC) │   │
-           ├─ VM 106: UBUNTU-SERVER      │   │
-           ├─ VM 107: FreeRADIUS + CA    │   │
-           ├─ VM 108: VM 108             │   │
-           ├─ VM 109: CDS-n8n Engine     │   │
-           ├─ VM 110: velocitee Node     │   │
-           ├─ VM 111: Wazuh SIEM         │   │
-           └─ VM 113: Home Assistant     │   │
-                                         │   │
-           ┌─────────────────────────────┘   └─────────────┐
-           │ Gi1/0/26 (Trunk)                              │
-┌──────────▼──────────┐                         ┌──────────▼──────────┐
-│      SillyNAS       │                         │   SillyEdgeSwitch   │ (Classroom)
-│ TrueNAS 25.04.2.6   │                         │ Cisco Catalyst 2960 │ 172.16.67.5/28
-│ Mgmt: 172.16.67.4   │                         └──────────┬──────────┘
 │ Data: 172.16.20.25  │                                    │ Fa0/1–Fa0/24 (Access VLAN 20)
 └─────────────────────┘                         ┌──────────▼──────────┐
                                                 │ Classroom Z230 PCs  │
@@ -185,14 +201,30 @@ The **WHS Cyber StemLab** provides an enterprise-grade computing and networking 
 
 Because Starlink provides only CGNAT IPv4 addresses with no inbound port forwarding, remote access is maintained via a persistent **Tailscale VPN Overlay Mesh**:
 
-```
-Tailscale Mesh (100.x.x.x)
-├── 100.112.34.75   lab-access-pve-ct100      (Linux CT 100 on Proxmox; Subnet Relay to 172.16.67.0/28)
-├── 100.68.220.93   velocitee-node            (Active Linux node)
-├── 100.83.36.66    indasky314-latitude-5400  (Operator Linux Laptop - authorized management)
-├── 100.101.252.125 glkvm                     (Out-of-band hardware KVM)
-├── 100.99.26.112   desktop-d5qip0j           (Lab desktop node)
-└── 100.68.15.46    indasky314-windows-desktop (Remote administration workstation)
+```mermaid
+graph LR
+    subgraph TailscaleCloud["Tailscale Overlay Mesh (100.x.x.x)"]
+        direction TB
+        Relay["<b>CT 100</b> (Proxmox Subnet Relay)<br/>100.112.34.75"]
+        Velocitee["<b>velocitee-node</b><br/>100.68.220.93"]
+        AdminLap["<b>indasky314-latitude-5400</b><br/>100.83.36.66<br/><i>Authorized Admin</i>"]
+        KVM["<b>glkvm</b> (IP KVM)<br/>100.101.252.125"]
+        LabDesk["<b>desktop-d5qip0j</b><br/>100.99.26.112"]
+        WinDesk["<b>indasky314-windows-desktop</b><br/>100.68.15.46"]
+    end
+
+    subgraph InternalSubnet["StemLab Management Subnet (172.16.67.0/28)"]
+        SR_Mgmt["SillyRouter (172.16.67.1)"]
+        SS_Mgmt["SillySwitch (172.16.67.2)"]
+        PVE_Mgmt["SillyProxmox (172.16.67.3)"]
+        NAS_Mgmt["SillyNAS (172.16.67.4)"]
+        SW2_Mgmt["SillyEdgeSwitch (172.16.67.5)"]
+        AP_Mgmt["Aruba VC (172.16.67.6)"]
+    end
+
+    AdminLap -.->|Encrypted WireGuard| Relay
+    WinDesk -.->|Encrypted WireGuard| Relay
+    Relay ==>|Subnet Route 172.16.67.0/28| InternalSubnet
 ```
 - **Management ACL Ingress:** Cisco switches and the core router enforce VTY SSH filtering allowing connections exclusively from the Management VLAN (`172.16.67.0/28`) and operator Tailscale IP (`100.83.36.66`).
 
@@ -276,6 +308,34 @@ ip dhcp pool GUEST
 - **Primary Host IP:** `172.16.67.3/28` (Web GUI: `https://172.16.67.3:8006`)
 
 ### 4.2 Linux Bridge & Active Trunk Migration (`enp4s0` & `vmbr2`)
+
+```mermaid
+flowchart LR
+    subgraph PhysicalPorts["Physical NIC Interfaces on Proxmox Host"]
+        IntelI350["<b>enp4s0f0</b> (Intel I350 4-Port)<br/>1Gbps Full Duplex"]
+        Broadcom1["<b>enp8s0f0</b> (Broadcom Onboard)<br/>1Gbps Full Duplex"]
+        Broadcom2["<b>enp8s0f1</b> (Broadcom Onboard)<br/>1Gbps Full Duplex"]
+    end
+
+    subgraph Bridges["Proxmox Virtual Bridges (PVE 9.2.0)"]
+        VMBR2["<b>vmbr2</b> (VLAN-Aware Trunk)<br/>172.16.67.3/28 (GW: 172.16.67.1)<br/>VIDs: 2-4094"]
+        VMBR0["<b>vmbr0</b> (Untagged Lab Access)<br/>DHCP 192.168.1.44/24"]
+        VMBR3["<b>vmbr3</b> (OPNsense Internal Trunk)<br/>VIDs: 2-4094"]
+    end
+
+    subgraph Workloads["Attached Virtual Machines & Containers"]
+        CoreVMs["All Active Production Guests:<br/>• VM 102 (Worker)<br/>• VM 103 (PXE/FOG)<br/>• VM 105 (DC 1776)<br/>• VM 107 (RADIUS)<br/>• CT 100, 112, 114"]
+        OPN["VM 101: OPNsense Router (Testing)"]
+    end
+
+    IntelI350 ==>|Active Master Trunk| VMBR2
+    Broadcom1 --> VMBR0
+    Broadcom2 --> VMBR3
+
+    VMBR2 ==> CoreVMs
+    VMBR3 --> OPN
+    VMBR0 --> OPN
+```
 
 During recent infrastructure enhancements, a **4-port Intel I350 NIC** was installed (`enp4s0f0`–`enp4s0f3`) to offload hypervisor management and VM traffic. As verified from live `/etc/network/interfaces`:
 
@@ -431,6 +491,30 @@ SillyNAS runs **TrueNAS SCALE 25.04.2.6** and physically enforces network segreg
   * `DESKTOP-Z230-###`: Specialized lab benches (VLAN 10).
 
 ### 6.3 DNS Architecture & Multi-Tier Resolution
+
+```mermaid
+flowchart TD
+    Client["Client / Domain Workstation (VLAN 20)"]
+
+    subgraph InternalResolvers["StemLab Recursive & Forwarding Tiers"]
+        PrimaryDC["<b>Primary DNS: WIN-UPU3JKF7N79</b> (VM 105)<br/>172.16.20.20 (Windows Server 2025)<br/>Authoritative for stemlab.lan & _msdcs"]
+        RedundantDC["<b>Redundant DNS: DNS-2ndSecondary</b> (CT 114)<br/>172.16.20.22 (Debian 13 LXC)<br/>Classroom DNS Cache"]
+        LabSecondary["<b>Lab DNS: dns-secondary</b> (CT 112)<br/>172.16.10.34 (Debian 13 LXC)<br/>VLAN 10 Infrastructure Cache"]
+    end
+
+    subgraph PublicForwarders["Public Recursive Upstreams"]
+        CF["Cloudflare DNS (1.1.1.1)"]
+        Google["Google DNS (8.8.8.8)"]
+    end
+
+    Client -->|1. Internal FQDN *.stemlab.lan| PrimaryDC
+    Client -.->|Failover / Fallback| RedundantDC
+    PrimaryDC -->|Local AD Zone Lookup| PrimaryDC
+    PrimaryDC -->|2. External Queries / Forwarding| CF
+    PrimaryDC -->|Forwarding Fallback| Google
+    LabSecondary -->|Conditional Forwarding stemlab.lan| PrimaryDC
+```
+
 - **Primary Resolver (VLAN 20):** Windows Server DNS runs on `172.16.20.20` (`WIN-UPU3JKF7N79`).
   * Authoritative for `stemlab.lan` and `_msdcs.stemlab.lan`.
   * Reverse lookup zones for `172.16.20.x` and `172.16.10.x`.
@@ -482,6 +566,29 @@ To permanently resolve trust breakage when student laptops sit offline for exten
 
 ### 7.1 Aruba APIN0205 Instant AP Architecture
 The StemLab wireless environment is powered by enterprise **Aruba APIN0205** access points configured as an autonomous **Instant Access Point (IAP)** cluster. One AP acts as the dynamic Virtual Controller (VC) at `172.16.67.6`.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Laptop as Wireless Laptop / Device
+    participant AP as Aruba APIN0205 (VC 172.16.67.6)
+    participant RADIUS as FreeRADIUS (VM 107 - 172.16.20.100)
+    participant Switch as SillySwitch (PoE Core)
+    participant Router as SillyRouter (Cisco ISR)
+
+    Laptop->>AP: Associate with SSID stemlab (Sends Client MAC)
+    AP->>RADIUS: RADIUS Access-Request (UDP 1812: Client MAC as User/Pass)
+    alt MAC is Whitelisted in /etc/freeradius/3.0/users
+        RADIUS-->>AP: RADIUS Access-Accept
+        AP->>Switch: Bridge traffic to VLAN 20 (Classroom)
+        Laptop->>Router: DHCP Discover (VLAN 20)
+        Router-->>Laptop: DHCP Offer (172.16.20.x, GW: 172.16.20.1, DNS: 172.16.20.20)
+        Laptop->>Laptop: Domain joined & Active Directory access granted
+    else MAC is Unknown / Unauthorized
+        RADIUS-->>AP: RADIUS Access-Reject
+        AP-->>Laptop: De-authenticate / Association Denied
+    end
+```
 
 ### 7.2 TFTP Flashing & Instant OS Conversion
 To convert surplus enterprise campus APs into autonomous Instant APs:
@@ -546,25 +653,30 @@ Managed via Docker Compose (`/home/ferry/stemlab-drinks/compose.yml`):
 - **Backend Container (`stemlab-drinks-backend-1`):** Node.js 20 Alpine, Express, Helmet, express-rate-limit.
 - **Database Container (`stemlab-drinks-db-1`):** PostgreSQL 16 on internal bridge network (`pgdata` volume).
 
-```
-   Browser (Student / Staff)
-             │
-             │ HTTPS (Cloudflare Edge)
-             ▼
-   Cloudflare Tunnel (`cloudflared`)
-             │
-             │ HTTP (127.0.0.1:3000)
-             ▼
-┌─────────────────────────────────────────┐
-│        Express / Node.js Backend        │  stemlab-drinks-backend-1
-│   Helmet (CSP) & Rate-Limiters (IP)     │  UID 1000:1000 (Non-root)
-└────────────────────┬────────────────────┘
-                     │ SQL (pg Pool)
-                     ▼
-┌─────────────────────────────────────────┐
-│              PostgreSQL 16              │  stemlab-drinks-db-1
-│    Database: stemlab | User: stemlab    │  Port 5432 (Internal Only)
-└─────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Client["Client (Browser / Student / Staff)"]
+    
+    subgraph CloudflareNetwork["Cloudflare Edge Network"]
+        CF_Edge["Cloudflare Edge Proxy<br/>drinks.whslab.net"]
+        WAF["Edge WAF & DDoS Shield"]
+        TLS["TLS 1.3 Termination"]
+    end
+
+    subgraph DolusHost["dolus Server (172.16.10.58)"]
+        CFTunnel["<b>cloudflared daemon</b><br/>Outbound-only secure tunnel"]
+        
+        subgraph DockerCompose["Docker Compose Stack"]
+            Backend["<b>stemlab-drinks-backend-1</b><br/>Node.js 20 Express (Port 3000)<br/>Helmet CSP | Express Rate-Limit<br/>Non-Root (UID 1000)"]
+            DB["<b>stemlab-drinks-db-1</b><br/>PostgreSQL 16 (Port 5432)<br/>Internal Docker Bridge Network<br/>Volume: pgdata"]
+        end
+    end
+
+    Client ==>|HTTPS / Public Web| CF_Edge
+    CF_Edge --> WAF --> TLS
+    TLS ==>|Encrypted Tunnel Stream| CFTunnel
+    CFTunnel -->|HTTP 127.0.0.1:3000| Backend
+    Backend -->|Internal SQL / pg Pool| DB
 ```
 
 **PostgreSQL Schema:**
@@ -625,18 +737,32 @@ docker exec -it stemlab-drinks-db-1 psql -U stemlab -d stemlab \
 
 Switching China Mode on or off is automated via Python Netmiko scripts located on Proxmox at `/opt/china-mode/scripts/`:
 
-```
-                    ┌─────────────────────────┐
-                    │ bash china-on.sh        │
-                    └────────────┬────────────┘
-                                 │
-     ┌───────────────────────────┴───────────────────────────┐
-     ▼                                                       ▼
-1. Starts Proxmox CT 200              2. Executes router_toggle.py (Netmiko)
-   Waits for Pi-hole health check        Connects to SillyRouter (172.16.67.1):
-                                         - Sets CLASSROOM DNS to 172.16.20.21
-                                         - Applies ACL CHINA-MODE-DNS-LOCK
-                                         - Clears DHCP bindings
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin as Cybersecurity Instructor
+    participant Proxmox as SillyProxmox Host (172.16.67.3)
+    participant CT200 as CT 200 (Pi-hole / GFW Stack)
+    participant Script as Netmiko Script (router_toggle.py)
+    participant Router as SillyRouter (Cisco ISR C1112)
+    participant ClassPC as Classroom PCs (VLAN 20)
+
+    Admin->>Proxmox: Execute bash china-on.sh
+    Proxmox->>CT200: pct start 200
+    Note over CT200: Pi-hole FTL, Nginx, Mitmproxy spin up (172.16.20.21)
+    CT200-->>Proxmox: Health Check OK (HTTP 200)
+
+    Proxmox->>Script: Run router_toggle.py
+    Script->>Router: SSH Login (172.16.67.1)
+    Router->>Router: Set DHCP CLASSROOM dns-server to 172.16.20.21
+    Router->>Router: Apply ACL: CHINA-MODE-DNS-LOCK on Gi0/1/0.20
+    Router->>Router: clear ip dhcp binding *
+    Router-->>Script: Config applied & committed
+
+    ClassPC->>Router: DHCP Renew / Query
+    Router-->>ClassPC: DNS Server = 172.16.20.21 (CT 200)
+    ClassPC->>CT200: DNS Query (e.g. google.com / youtube.com)
+    CT200-->>ClassPC: Blocked / Sinkholed / Spoofed
 ```
 
 **Cisco Router Configuration Toggled Dynamically:**
@@ -671,6 +797,22 @@ ip dhcp pool CLASSROOM
 
 ### 10.1 Bare-Metal Rebuild Order
 When recovering the laboratory from a total power outage or hardware refresh, restore devices in this sequence:
+
+```mermaid
+flowchart TD
+    Step1["<b>Step 1: Starlink Satellite Dish</b><br/>Power on & wait 3–5 min for WAN lock"]
+    Step2["<b>Step 2: SillyRouter (Cisco ISR 1112)</b><br/>Boot router & verify WAN DHCP on Gi0/0/0"]
+    Step3["<b>Step 3: SillySwitch (Cisco 3750X Core)</b><br/>Establish 802.1Q Trunks & PoE power"]
+    Step4["<b>Step 4: SillyNAS (TrueNAS SCALE)</b><br/>Import STUDENT_STORAGE & CYBER_LAB ZFS pools"]
+    Step5["<b>Step 5: SillyProxmox Host</b><br/>Verify vmbr2 on enp4s0f0 (172.16.67.3)"]
+    Step6["<b>Step 6: Core Virtual Machines</b><br/>1. VM 105 (Windows DC / DNS)<br/>2. VM 107 (FreeRADIUS)<br/>3. CT 100 (Tailscale Mesh Relay)"]
+    Step7["<b>Step 7: Secondary Services & Compute</b><br/>VM 102 (Worker), VM 103 (PXE/FOG), VM 106, VM 113"]
+    Step8["<b>Step 8: Edge Access & APs</b><br/>SillyEdgeSwitch (2960) & Aruba APIN0205 Cluster"]
+    Step9["<b>Step 9: Production Microservices</b><br/>dolus Host (stemlab-drinks Docker Compose)"]
+
+    Step1 --> Step2 --> Step3 --> Step4 --> Step5 --> Step6 --> Step7 --> Step8 --> Step9
+```
+
 1. **Starlink Satellite Dish:** Power on and wait 3–5 minutes for satellite lock.
 2. **SillyRouter (Cisco ISR 1112):** Boot router; verify WAN acquisition on `Gi0/0/0`.
 3. **SillySwitch (Cisco 3750X):** Power on core switch; confirm trunks establish on port 48.
